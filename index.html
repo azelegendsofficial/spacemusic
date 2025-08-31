@@ -90,11 +90,17 @@
         }
 
         .sidebar.collapsed .sidebar-header {
-            padding: 24px 16px;
+            padding: 24px 8px;
+            justify-content: center;
         }
 
         .sidebar.collapsed .logo {
             justify-content: center;
+            cursor: pointer;
+        }
+
+        .sidebar.collapsed .logo:hover .logo-icon {
+            fill: #60a5fa;
         }
 
         .sidebar.collapsed .logo-text {
@@ -132,6 +138,35 @@
             border: 1px solid #374151;
         }
 
+        .expand-button {
+            position: absolute;
+            top: 50%;
+            right: -12px;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            background: #3b82f6;
+            border: 2px solid #0f172a;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .expand-button:hover {
+            background: #2563eb;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .expand-button svg {
+            width: 12px;
+            height: 12px;
+            fill: #ffffff;
+        }
+
         .sidebar.collapsed .nav-item:hover::before {
             content: '';
             position: absolute;
@@ -144,6 +179,27 @@
             border-bottom: 4px solid transparent;
             border-right: 4px solid rgba(15, 23, 42, 0.9);
             z-index: 1001;
+        }
+
+        .sidebar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -1px;
+            width: 2px;
+            height: 100%;
+            background: transparent;
+            cursor: ew-resize;
+            z-index: 5;
+            transition: background 0.2s ease;
+        }
+
+        .sidebar.collapsed::after {
+            background: rgba(59, 130, 246, 0.3);
+        }
+
+        .sidebar.collapsed:hover::after {
+            background: rgba(59, 130, 246, 0.6);
         }
 
         .sidebar::before {
@@ -779,7 +835,7 @@
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
+                <div class="logo" onclick="expandSidebar()">
                     <svg class="logo-icon" viewBox="0 0 24 24">
                         <path d="M12 2L13.09 8.26L22 9L13.09 15.74L12 22L10.91 15.74L2 9L10.91 8.26L12 2Z"/>
                     </svg>
@@ -792,20 +848,26 @@
                 </button>
             </div>
 
+            <button class="expand-button" onclick="expandSidebar()" title="Expand sidebar">
+                <svg viewBox="0 0 24 24">
+                    <path d="M8.59 16.58L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.58Z"/>
+                </svg>
+            </button>
+
             <nav class="nav-section">
-                <a href="#" class="nav-item active" onclick="setActiveNav(this)" data-tooltip="Home">
+                <a href="#" class="nav-item active" onclick="setActiveNav(this)" data-tooltip="Home" title="Home">
                     <svg viewBox="0 0 24 24">
                         <path d="M10 20V14H14V20H19V12H22L12 3L2 12H5V20H10Z"/>
                     </svg>
                     <span>Home</span>
                 </a>
-                <button class="nav-item" onclick="openSearchPopup()" data-tooltip="Search">
+                <button class="nav-item" onclick="openSearchPopup()" data-tooltip="Search" title="Search">
                     <svg viewBox="0 0 24 24">
                         <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5S5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14Z"/>
                     </svg>
                     <span>Search</span>
                 </button>
-                <a href="#" class="nav-item" onclick="setActiveNav(this)" data-tooltip="Your Library">
+                <a href="#" class="nav-item" onclick="setActiveNav(this)" data-tooltip="Your Library" title="Your Library">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 3V13.55C11.41 13.21 10.73 13 10 13C7.79 13 6 14.79 6 17S7.79 21 10 21 14 19.21 14 17V7H18V3H12Z"/>
                     </svg>
@@ -1028,13 +1090,18 @@
             }
         }
 
-        function closeSidebar() {
+        // Expand sidebar function
+        function expandSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const mobileOverlay = document.getElementById('mobileOverlay');
+            const toggleIcon = document.getElementById('sidebarToggleIcon');
             
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('mobile-open');
-                mobileOverlay.classList.remove('show');
+            if (sidebar.classList.contains('collapsed')) {
+                sidebar.classList.remove('collapsed');
+                
+                // Update toggle icon back to collapse
+                if (toggleIcon) {
+                    toggleIcon.innerHTML = '<path d="M15.41 16.58L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.58Z"/>';
+                }
             }
         }
 
@@ -1147,6 +1214,7 @@
             createParticles();
             renderSongs();
             updateGreeting();
+            addExpandListeners();
         }
 
         // Auto-adjust sidebar on resize
