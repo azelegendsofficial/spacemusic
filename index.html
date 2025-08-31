@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Music</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Background gradient */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at top, #1e3a8a 0%, #1e1b4b 25%, #000000 50%);
+            z-index: -2;
+        }
+
+        /* Animated particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            background: #3b82f6;
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+            opacity: 0.7;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-10vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Main layout */
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+            border-right: 1px solid #1e293b;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            padding: 24px 16px;
+        }
+
+        .sidebar.collapsed .logo {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-item {
+            padding: 12px 16px;
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .nav-item span {
+            display: none;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(180deg, transparent 0%, #3b82f6 50%, transparent 100%);
+            opacity: 0.3;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            fill: #3b82f6;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-toggle:hover {
+            color: #ffffff;
+            background: rgba(148, 163, 184, 0.1);
+        }
+
+        .sidebar-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .nav-section {
+            padding: 24px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: #ffffff;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: -200px;
+        }
+
+        .topbar {
+            height: 80px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: relative;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .menu-toggle:hover {
+            color: #ffffff;
+            background: rgba(148, 163, 184, 0.1);
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #374151;
+            border-radius: 25px;
+            padding: 12px 48px 12px 20px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            fill: #9ca3af;
+            pointer-events: none;
+        }
+
+        /* Content area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.95) 100%);
+        }
+
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+
+        .content::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            color: #9ca3af;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        /* Song grid */
+        .songs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        .song-card {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .song-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .song-card:hover::before {
+            opacity: 1;
+        }
+
+        .song-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .song-image-container {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .song-image {
+            width: 100%;
+            height: 160px;
+            border-radius: 8px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .song-card:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-button {
+            width: 56px;
+            height: 56px;
+            background: #3b82f6;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .play-button:hover {
+            background: #2563eb;
+            transform: scale(1.1);
+        }
+
+        .play-button svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+            margin-left: 2px;
+        }
+
+        .song-info {
+            position: relative;
+            z-index: 1;
+        }
+
+        .song-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .song-artist {
+            font-size: 14px;
+            color: #9ca3af;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Search popup */
+        .search-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .search-popup.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .search-popup-content {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .popup-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .close-button:hover {
+            color: #ffffff;
+            background: rgba(148, 163, 184, 0.1);
+        }
+
+        .close-button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .popup-search-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .popup-search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #374151;
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: #ffffff;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .popup-search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .search-results {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .search-results::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .search-results::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .search-results::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 3px;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-result-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .search-result-image {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .search-result-artist {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* Overlay for mobile */
+        .mobile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 200;
+                height: 100vh;
+                transform: translateX(-280px);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar.collapsed {
+                transform: translateX(-280px);
+            }
+
+            .main-content {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .main-content.expanded {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .topbar {
+                padding: 0 16px;
+            }
+
+            .search-container {
+                max-width: 200px;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            .songs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 16px;
+            }
+
+            .song-image {
+                height: 120px;
+            }
+
+            .search-popup-content {
+                margin: 16px;
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .songs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 12px;
+            }
+
+            .song-card {
+                padding: 16px;
+            }
+
+            .song-image {
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-gradient"></div>
+    <div class="particles" id="particles"></div>
+    
+    <!-- Mobile overlay -->
+    <div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
+
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24">
+                        <path d="M12 2L13.09 8.26L22 9L13.09 15.74L12 22L10.91 15.74L2 9L10.91 8.26L12 2Z"/>
+                    </svg>
+                    <span class="logo-text">Space Music</span>
+                </div>
+                <button class="sidebar-toggle" onclick="toggleSidebarCollapse()">
+                    <svg viewBox="0 0 24 24" id="sidebarToggleIcon">
+                        <path d="M15.41 16.58L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.58Z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <nav class="nav-section">
+                <a href="#" class="nav-item active" onclick="setActiveNav(this)">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10 20V14H14V20H19V12H22L12 3L2 12H5V20H10Z"/>
+                    </svg>
+                    <span>Home</span>
+                </a>
+                <button class="nav-item" onclick="openSearchPopup()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5S5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14Z"/>
+                    </svg>
+                    <span>Search</span>
+                </button>
+                <a href="#" class="nav-item" onclick="setActiveNav(this)">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 3V13.55C11.41 13.21 10.73 13 10 13C7.79 13 6 14.79 6 17S7.79 21 10 21 14 19.21 14 17V7H18V3H12Z"/>
+                    </svg>
+                    <span>Your Library</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main content -->
+        <div class="main-content">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 6H21V8H3V6ZM3 11H21V13H3V11ZM3 16H21V18H3V16Z"/>
+                        </svg>
+                    </button>
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="What do you want to listen to?" onclick="openSearchPopup()">
+                        <svg class="search-icon" viewBox="0 0 24 24">
+                            <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5S5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14Z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <h1 class="page-title">Good evening</h1>
+                <p class="page-subtitle">Discover amazing space music tracks</p>
+
+                <div class="songs-grid" id="songsGrid">
+                    <!-- Songs will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Popup -->
+    <div class="search-popup" id="searchPopup">
+        <div class="search-popup-content">
+            <div class="popup-header">
+                <h2 class="popup-title">Search Music</h2>
+                <button class="close-button" onclick="closeSearchPopup()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="popup-search-container">
+                <input type="text" class="popup-search-input" id="popupSearchInput" placeholder="Search for songs, artists...">
+            </div>
+            
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sample songs data
+        const songs = [
+            {
+                id: 1,
+                title: "Interstellar Dreams",
+                artist: "Cosmic Voyager",
+                image: "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=300&h=300&fit=crop&crop=center",
+                url: "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC"
+            },
+            {
+                id: 2,
+                title: "Galaxy Wanderer",
+                artist: "Star Seeker",
+                image: "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=300&h=300&fit=crop&crop=center",
+                url: "https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b"
+            },
+            {
+                id: 3,
+                title: "Nebula's Call",
+                artist: "Space Echo",
+                image: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=300&h=300&fit=crop&crop=center",
+                url: "https://soundcloud.com/space-echo/nebulas-call"
+            },
+            {
+                id: 4,
+                title: "Cosmic Journey",
+                artist: "Stellar Winds",
+                image: "https://images.unsplash.com/photo-1444927714506-8492d94b5ba0?w=300&h=300&fit=crop&crop=center",
+                url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            },
+            {
+                id: 5,
+                title: "Starlight Symphony",
+                artist: "Aurora Borealis",
+                image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop&crop=center",
+                url: "https://open.spotify.com/track/7qiZfU4dY21yOCPawVTSYa"
+            },
+            {
+                id: 6,
+                title: "Orbital Dance",
+                artist: "Planetary Motion",
+                image: "https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?w=300&h=300&fit=crop&crop=center",
+                url: "https://soundcloud.com/planetary-motion/orbital-dance"
+            },
+            {
+                id: 7,
+                title: "Deep Space Meditation",
+                artist: "Quantum Relaxation",
+                image: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=300&h=300&fit=crop&crop=center",
+                url: "https://www.youtube.com/watch?v=example123"
+            },
+            {
+                id: 8,
+                title: "Solar Wind",
+                artist: "Cosmic Elements",
+                image: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=300&h=300&fit=crop&crop=center",
+                url: "https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B"
+            },
+            {
+                id: 9,
+                title: "Asteroid Belt",
+                artist: "Zero Gravity",
+                image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=300&fit=crop&crop=center",
+                url: "https://soundcloud.com/zero-gravity/asteroid-belt"
+            },
+            {
+                id: 10,
+                title: "Milky Way Blues",
+                artist: "Galactic Groove",
+                image: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=300&h=300&fit=crop&crop=center",
+                url: "https://www.youtube.com/watch?v=example456"
+            }
+        ];
+
+        // Initialize particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Render songs
+        function renderSongs(songsToRender = songs) {
+            const songsGrid = document.getElementById('songsGrid');
+            songsGrid.innerHTML = '';
+
+            songsToRender.forEach(song => {
+                const songCard = document.createElement('div');
+                songCard.className = 'song-card';
+                songCard.innerHTML = `
+                    <div class="song-image-container">
+                        <img src="${song.image}" alt="${song.title}" class="song-image">
+                        <div class="play-overlay">
+                            <button class="play-button" onclick="playSong('${song.url}')">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M8 5V19L19 12L8 5Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="song-info">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                    </div>
+                `;
+                songsGrid.appendChild(songCard);
+            });
+        }
+
+        // Sidebar functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('mobile-open');
+                mobileOverlay.classList.toggle('show');
+            }
+        }
+
+        function toggleSidebarCollapse() {
+            if (window.innerWidth > 768) {
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.querySelector('.main-content');
+                const toggleIcon = document.getElementById('sidebarToggleIcon');
+                
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                
+                // Update toggle icon
+                if (sidebar.classList.contains('collapsed')) {
+                    toggleIcon.innerHTML = '<path d="M8.59 16.58L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.58Z"/>';
+                } else {
+                    toggleIcon.innerHTML = '<path d="M15.41 16.58L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.58Z"/>';
+                }
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('show');
+            }
+        }
+
+        function setActiveNav(element) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+            closeSidebar();
+        }
+
+        // Search functions
+        function openSearchPopup() {
+            closeSidebar();
+            const searchPopup = document.getElementById('searchPopup');
+            searchPopup.classList.add('show');
+            document.getElementById('popupSearchInput').focus();
+        }
+
+        function closeSearchPopup() {
+            const searchPopup = document.getElementById('searchPopup');
+            searchPopup.classList.remove('show');
+            document.getElementById('popupSearchInput').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+        }
+
+        function searchSongs(query) {
+            return songs.filter(song => 
+                song.title.toLowerCase().includes(query.toLowerCase()) ||
+                song.artist.toLowerCase().includes(query.toLowerCase())
+            );
+        }
+
+        function renderSearchResults(results) {
+            const searchResults = document.getElementById('searchResults');
+            searchResults.innerHTML = '';
+
+            if (results.length === 0) {
+                searchResults.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px 20px;">No songs found</p>';
+                return;
+            }
+
+            results.forEach(song => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.innerHTML = `
+                    <img src="${song.image}" alt="${song.title}" class="search-result-image">
+                    <div class="search-result-info">
+                        <div class="search-result-title">${song.title}</div>
+                        <div class="search-result-artist">${song.artist}</div>
+                    </div>
+                `;
+                resultItem.onclick = () => {
+                    closeSearchPopup();
+                    playSong(song.url);
+                };
+                searchResults.appendChild(resultItem);
+            });
+        }
+
+        function playSong(url) {
+            window.open(url, '_blank');
+        }
+
+        // Event listeners
+        document.getElementById('popupSearchInput').addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            if (query.length > 0) {
+                const results = searchSongs(query);
+                renderSearchResults(results);
+            } else {
+                document.getElementById('searchResults').innerHTML = '';
+            }
+        });
+
+        // Close popups on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSearchPopup();
+                closeSidebar();
+            }
+        });
+
+        // Close search popup when clicking outside
+        document.getElementById('searchPopup').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('searchPopup')) {
+                closeSearchPopup();
+            }
+        });
+
+        // Update greeting based on time
+        function updateGreeting() {
+            const now = new Date();
+            const hour = now.getHours();
+            let greeting;
+
+            if (hour < 12) {
+                greeting = "Good morning";
+            } else if (hour < 17) {
+                greeting = "Good afternoon";
+            } else {
+                greeting = "Good evening";
+            }
+
+            document.querySelector('.page-title').textContent = greeting;
+        }
+
+        // Initialize app
+        function initApp() {
+            createParticles();
+            renderSongs();
+            updateGreeting();
+        }
+
+        // Auto-adjust sidebar on resize
+        window.addEventListener('resize', () => {
+            const sidebar = document.getElementById('sidebar');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+            const mainContent = document.querySelector('.main-content');
+            
+            if (window.innerWidth > 768) {
+                // Desktop mode
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('show');
+            } else {
+                // Mobile mode - reset collapsed state
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+            }
+        });
+
+        // Start the app
+        window.addEventListener('load', initApp);
+    </script>
+</body>
+</html>
